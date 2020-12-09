@@ -106,7 +106,7 @@ import global.namespace.fun.io.bios.BIOS;
  * }</pre>
  *
  * @author Christian Schlichtherle
- * @see <a href="https://www.gkv-datenaustausch.de/media/dokumente/standards_und_normen/technische_spezifikationen/Anlage_16_-_Security-Schnittstelle.pdf">Anlage 16 - Security Schnittstelle (SECON) (PDF, 1.2 MB)</a>
+ * @see <a href="https://www.gkv-datenaustausch.de/media/dokumente/standards_und_normen/technische_spezifikationen/Anlage_16.pdf">Anlage 16 - Security Schnittstelle (SECON) (PDF, 1.2 MB)</a>
  * @see <a href="https://www.gkv-datenaustausch.de/media/dokumente/standards_und_normen/technische_spezifikationen/Best_Practice_Security.pdf">Best Practice zur Security-Schnittstelle (PDF, 499 KB)</a>
  */
 public final class SECON {
@@ -182,7 +182,7 @@ public final class SECON {
      * Die Zertifikate werden aus einem LDAP-Server unter Verwendung des gegebenen Verbindungspools geladen.
      * <p>
      * Das Schema des Directory Information Tree muss Kapitel 4.6.2 "LDAP-Verzeichnis" der
-     * <a href="https://www.gkv-datenaustausch.de/media/dokumente/standards_und_normen/technische_spezifikationen/Anlage_16_-_Security-Schnittstelle.pdf">Security-Schnittstelle (SECON) - Anlage 16</a>
+     * <a href="https://www.gkv-datenaustausch.de/media/dokumente/standards_und_normen/technische_spezifikationen/Anlage_16.pdf">Security-Schnittstelle (SECON) - Anlage 16</a>
      * entsprechen.
      *
      * @param pool Ein Pool von Verbindungen zum LDAP-Server.
@@ -197,7 +197,7 @@ public final class SECON {
      * Alle Verbindungen werden in einem Pool verwaltet.
      * Der LDAP-Server muss anonymen Lesezugriff erlauben und das Schema des Directory Information Tree muss Kapitel
      * 4.6.2 "LDAP-Verzeichnis" der
-     * <a href="https://www.gkv-datenaustausch.de/media/dokumente/standards_und_normen/technische_spezifikationen/Anlage_16_-_Security-Schnittstelle.pdf">Security-Schnittstelle (SECON) - Anlage 16</a>
+     * <a href="https://www.gkv-datenaustausch.de/media/dokumente/standards_und_normen/technische_spezifikationen/Anlage_16.pdf">Security-Schnittstelle (SECON) - Anlage 16</a>
      * entsprechen.
      *
      * @param url Ein URL mit dem Schema {@code ldap}.
