@@ -81,6 +81,16 @@ public class LdapDirectoryTest {
         );
     }
 
+    @Test
+    void ZADtools_GmbH_und_Co_KG() throws Exception {
+        assertCertificate(
+                "590301798",
+                "o=itsg trustcenter fuer sonstige leistungserbringer, c=de",
+                "34597",
+                "EB:D2:32:4D:1C:DD:C4:60:76:22:D8:29:C6:60:8E:D4:6F:2F:C9:11"
+        );
+    }
+
     private void assertCertificate(
             final String identifier,
             final String issuerDN,
