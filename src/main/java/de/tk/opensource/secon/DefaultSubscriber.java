@@ -20,23 +20,16 @@
  */
 package de.tk.opensource.secon;
 
-import global.namespace.fun.io.api.Socket;
-import global.namespace.fun.io.api.function.XFunction;
-import org.bouncycastle.asn1.ASN1ObjectIdentifier;
-import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
-import org.bouncycastle.asn1.x500.X500Name;
-import org.bouncycastle.cms.*;
-import org.bouncycastle.cms.jcajce.JcaSignerInfoGeneratorBuilder;
-import org.bouncycastle.cms.jcajce.JcaSimpleSignerInfoVerifierBuilder;
-import org.bouncycastle.cms.jcajce.JceCMSContentEncryptorBuilder;
-import org.bouncycastle.cms.jcajce.JceKeyTransEnvelopedRecipient;
-import org.bouncycastle.operator.ContentSigner;
-import org.bouncycastle.operator.OutputEncryptor;
-import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
-import org.bouncycastle.operator.jcajce.JcaDigestCalculatorProviderBuilder;
+import static de.tk.opensource.secon.SECON.callable;
+import static de.tk.opensource.secon.SECON.socket;
+import static java.util.Objects.requireNonNull;
+import static org.bouncycastle.jce.provider.BouncyCastleProvider.PROVIDER_NAME;
 
-import javax.security.auth.x500.X500Principal;
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.FilterInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.security.AlgorithmParameters;
 import java.security.PrivateKey;
 import java.security.cert.X509CertSelector;
@@ -46,10 +39,34 @@ import java.util.Arrays;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 
-import static de.tk.opensource.secon.SECON.callable;
-import static de.tk.opensource.secon.SECON.socket;
-import static java.util.Objects.requireNonNull;
-import static org.bouncycastle.jce.provider.BouncyCastleProvider.PROVIDER_NAME;
+import javax.security.auth.x500.X500Principal;
+
+import org.bouncycastle.asn1.ASN1ObjectIdentifier;
+import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
+import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.cms.CMSAlgorithm;
+import org.bouncycastle.cms.CMSEnvelopedDataParser;
+import org.bouncycastle.cms.CMSEnvelopedDataStreamGenerator;
+import org.bouncycastle.cms.CMSSignedDataParser;
+import org.bouncycastle.cms.CMSSignedDataStreamGenerator;
+import org.bouncycastle.cms.CMSTypedStream;
+import org.bouncycastle.cms.KeyTransRecipientId;
+import org.bouncycastle.cms.RecipientId;
+import org.bouncycastle.cms.RecipientInformation;
+import org.bouncycastle.cms.SignerId;
+import org.bouncycastle.cms.SignerInformation;
+import org.bouncycastle.cms.SignerInformationVerifier;
+import org.bouncycastle.cms.jcajce.JcaSignerInfoGeneratorBuilder;
+import org.bouncycastle.cms.jcajce.JcaSimpleSignerInfoVerifierBuilder;
+import org.bouncycastle.cms.jcajce.JceCMSContentEncryptorBuilder;
+import org.bouncycastle.cms.jcajce.JceKeyTransEnvelopedRecipient;
+import org.bouncycastle.operator.ContentSigner;
+import org.bouncycastle.operator.OutputEncryptor;
+import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
+import org.bouncycastle.operator.jcajce.JcaDigestCalculatorProviderBuilder;
+
+import global.namespace.fun.io.api.Socket;
+import global.namespace.fun.io.api.function.XFunction;
 
 /**
  * @author  Wolfgang Schmiesing (P224488, IT.IN.FRW)
@@ -216,7 +233,16 @@ final class DefaultSubscriber implements Subscriber {
 	}
 
     private InputStream decrypt(final InputStream in) throws Exception {
-        for (final RecipientInformation info : new CMSEnvelopedDataParser(new BufferedInputStream(in))
+        CMSEnvelopedDataParser cmsEDP = new CMSEnvelopedDataParser(new BufferedInputStream(in));
+        
+        // Darft verification of encryption algorithm. Does not work unfortunately...
+        // 2.16.840.1.101.3.4.1.42 vs 1.2.840.113549.1.1.7
+        if(!cmsEDP.getContentEncryptionAlgorithm().equals(KksAlgorithms.ENCRYPTION_ALGORITHM_RSAES_OAEP)) {
+        	throw new EncryptionAlgorithmIllegalException(cmsEDP.getContentEncryptionAlgorithm().getAlgorithm() + " vs " //
+        			+ KksAlgorithms.ENCRYPTION_ALGORITHM_RSAES_OAEP.getAlgorithm());
+        }
+        
+		for (final RecipientInformation info : cmsEDP
                 .getRecipientInfos()) {
             final RecipientId id = info.getRID();
             if (id instanceof KeyTransRecipientId) {
