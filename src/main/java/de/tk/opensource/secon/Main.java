@@ -16,7 +16,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 
-import static de.tk.opensource.secon.SECON.*;
+import static de.tk.opensource.secon.SECONBadAlgo.*;
 
 /**
  * Ein Kommandozeilenwerkzeug, welches einem Kommunikationsteilnehmer im Krankenkassenkommunikationssystem (KKS)

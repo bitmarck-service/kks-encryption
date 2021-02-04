@@ -50,11 +50,13 @@ public class SeconTest {
 
 	@Test
 	void aliceToBobUsingRSA256() throws Exception {
+		System.out.println("aliceToBobUsingRSA256");
 		assertCommunicationRoundtrip("alice_rsa_256", "bob_rsa_256");
 	}
 
 	@Test
 	void bobToAliceUsingRSA256() throws Exception {
+		System.out.println("bobToAliceUsingRSA256");
 		assertCommunicationRoundtrip("bob_rsa_256", "alice_rsa_256");
 	}
 
