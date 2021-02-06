@@ -20,42 +20,12 @@
  */
 package de.tk.opensource.secon;
 
-import static de.tk.opensource.secon.SECON.callable;
-import static de.tk.opensource.secon.SECON.socket;
-import static java.util.Objects.requireNonNull;
-import static org.bouncycastle.jce.provider.BouncyCastleProvider.PROVIDER_NAME;
-
-import java.io.BufferedInputStream;
-import java.io.FilterInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.security.AlgorithmParameters;
-import java.security.PrivateKey;
-import java.security.cert.X509CertSelector;
-import java.security.cert.X509Certificate;
-import java.security.spec.PSSParameterSpec;
-import java.util.Arrays;
-import java.util.Optional;
-import java.util.concurrent.Callable;
-
-import javax.security.auth.x500.X500Principal;
-
+import global.namespace.fun.io.api.Socket;
+import global.namespace.fun.io.api.function.XFunction;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
 import org.bouncycastle.asn1.x500.X500Name;
-import org.bouncycastle.cms.CMSAlgorithm;
-import org.bouncycastle.cms.CMSEnvelopedDataParser;
-import org.bouncycastle.cms.CMSEnvelopedDataStreamGenerator;
-import org.bouncycastle.cms.CMSSignedDataParser;
-import org.bouncycastle.cms.CMSSignedDataStreamGenerator;
-import org.bouncycastle.cms.CMSTypedStream;
-import org.bouncycastle.cms.KeyTransRecipientId;
-import org.bouncycastle.cms.RecipientId;
-import org.bouncycastle.cms.RecipientInformation;
-import org.bouncycastle.cms.SignerId;
-import org.bouncycastle.cms.SignerInformation;
-import org.bouncycastle.cms.SignerInformationVerifier;
+import org.bouncycastle.cms.*;
 import org.bouncycastle.cms.jcajce.JcaSignerInfoGeneratorBuilder;
 import org.bouncycastle.cms.jcajce.JcaSimpleSignerInfoVerifierBuilder;
 import org.bouncycastle.cms.jcajce.JceCMSContentEncryptorBuilder;
@@ -65,8 +35,21 @@ import org.bouncycastle.operator.OutputEncryptor;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.bouncycastle.operator.jcajce.JcaDigestCalculatorProviderBuilder;
 
-import global.namespace.fun.io.api.Socket;
-import global.namespace.fun.io.api.function.XFunction;
+import javax.security.auth.x500.X500Principal;
+import java.io.*;
+import java.security.AlgorithmParameters;
+import java.security.PrivateKey;
+import java.security.cert.X509CertSelector;
+import java.security.cert.X509Certificate;
+import java.security.spec.PSSParameterSpec;
+import java.util.Arrays;
+import java.util.Optional;
+import java.util.concurrent.Callable;
+
+import static de.tk.opensource.secon.SECON.callable;
+import static de.tk.opensource.secon.SECON.socket;
+import static java.util.Objects.requireNonNull;
+import static org.bouncycastle.jce.provider.BouncyCastleProvider.PROVIDER_NAME;
 
 /**
  * @author  Wolfgang Schmiesing (P224488, IT.IN.FRW)
@@ -237,8 +220,6 @@ final class DefaultSubscriber implements Subscriber {
         if(!cmsEDP.getEncryptionAlgOID().equals(CMSAlgorithm.AES256_CBC.getId())) {
         	throw new EncryptionAlgorithmIllegalException(CMSAlgorithm.AES256_CBC.getId(), cmsEDP.getEncryptionAlgOID());
         }
-        
-        System.out.println("decrypt: getEncryptionAlgOID: " + cmsEDP.getEncryptionAlgOID());
         
 		for (final RecipientInformation info : cmsEDP
                 .getRecipientInfos()) {

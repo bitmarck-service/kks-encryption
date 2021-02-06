@@ -2,12 +2,6 @@
 
 package de.tk.opensource.secon;
 
-import static de.tk.opensource.secon.SECON.copy;
-import static de.tk.opensource.secon.SECON.directory;
-import static de.tk.opensource.secon.SECON.identity;
-import static de.tk.opensource.secon.SECON.keyStore;
-import static de.tk.opensource.secon.SECON.subscriber;
-
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
@@ -21,6 +15,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.Callable;
+
+import static de.tk.opensource.secon.SECON.*;
 
 /**
  * Ein Kommandozeilenwerkzeug, welches einem Kommunikationsteilnehmer im Krankenkassenkommunikationssystem (KKS)
