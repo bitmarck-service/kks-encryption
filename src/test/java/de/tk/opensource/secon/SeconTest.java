@@ -90,54 +90,54 @@ public class SeconTest {
 			final Identity  recipientId,
 			final Directory directory
 		) throws Exception
-		{
-			final Subscriber senderSub = subscriber(senderId, directory);
-			final Subscriber recipientSub = subscriber(recipientId, directory);
-			final X509Certificate recipientCert = recipientId.certificate();
-			final Store plain = memory(), cipher = memory(), clone = memory();
-			plain.content("Hello world!".getBytes());
-			copy(input(plain), senderSub.signAndEncryptTo(output(cipher), recipientCert));
+	{
+		final Subscriber senderSub = subscriber(senderId, directory);
+		final Subscriber recipientSub = subscriber(recipientId, directory);
+		final X509Certificate recipientCert = recipientId.certificate();
+		final Store plain = memory(), cipher = memory(), clone = memory();
+		plain.content("Hello world!".getBytes());
+		copy(input(plain), senderSub.signAndEncryptTo(output(cipher), recipientCert));
 
-	        // Simulate certificate verification failure:
-	        {
-	            final SeconException e = new SeconException();
-	            assertSame(e, assertThrows(SeconException.class, () -> copy(
-	                    recipientSub.decryptAndVerifyFrom(input(cipher), cert -> {
-	                        throw e;
-	                    }),
-	                    output(clone)
-	            )));
-	        }
+        // Simulate certificate verification failure:
+        {
+            final SeconException e = new SeconException();
+            assertSame(e, assertThrows(SeconException.class, () -> copy(
+                    recipientSub.decryptAndVerifyFrom(input(cipher), cert -> {
+                        throw e;
+                    }),
+                    output(clone)
+            )));
+        }
 
+		copy(recipientSub.decryptAndVerifyFrom(input(cipher)), output(clone));
+		assertArrayEquals(plain.content(), clone.content());
+	}
+
+	private static Callable<InputStream> input(Source source) {
+		return callable(source.input());
+	}
+
+	private static Callable<OutputStream> output(Sink sink) {
+		return callable(sink.output());
+	}
+
+	@Test
+	void bobToAliceUsingRSASSA_RSS_256_BadEncAlgo() throws Exception {
+		final Callable<char[]> pw = "secret"::toCharArray;
+		final KeyStore ks = keyStore(() -> SeconTest.class.getResourceAsStream("keystore.p12"), pw);
+		Identity senderId = identity(ks, "bob_rsa_256", pw);
+		Identity recipientId = identity(ks, "alice_rsa_256", pw);
+		Directory directory = directory(ks);
+
+		final Subscriber senderSub = SECONEncBadAlgo.subscriber(senderId, directory);
+		final Subscriber recipientSub = subscriber(recipientId, directory);
+		final X509Certificate recipientCert = recipientId.certificate();
+		final Store plain = memory(), cipher = memory(), clone = memory();
+		plain.content("Hello world!".getBytes());
+		copy(input(plain), senderSub.signAndEncryptTo(output(cipher), recipientCert));
+		
+		assertThrows(EncryptionAlgorithmIllegalException.class, () -> {
 			copy(recipientSub.decryptAndVerifyFrom(input(cipher)), output(clone));
-			assertArrayEquals(plain.content(), clone.content());
-		}
-
-		private static Callable<InputStream> input(Source source) {
-			return callable(source.input());
-		}
-
-		private static Callable<OutputStream> output(Sink sink) {
-			return callable(sink.output());
-		}
-
-		@Test
-		void bobToAliceUsingRSASSA_RSS_256_BadEncAlgo() throws Exception {
-			final Callable<char[]> pw = "secret"::toCharArray;
-			final KeyStore ks = keyStore(() -> SeconTest.class.getResourceAsStream("keystore.p12"), pw);
-			Identity senderId = identity(ks, "bob_rsa_256", pw);
-			Identity recipientId = identity(ks, "alice_rsa_256", pw);
-			Directory directory = directory(ks);
-
-			final Subscriber senderSub = SECONEncBadAlgo.subscriber(senderId, directory);
-			final Subscriber recipientSub = subscriber(recipientId, directory);
-			final X509Certificate recipientCert = recipientId.certificate();
-			final Store plain = memory(), cipher = memory(), clone = memory();
-			plain.content("Hello world!".getBytes());
-			copy(input(plain), senderSub.signAndEncryptTo(output(cipher), recipientCert));
-			
-			assertThrows(EncryptionAlgorithmIllegalException.class, () -> {
-				copy(recipientSub.decryptAndVerifyFrom(input(cipher)), output(clone));
-			});
-		}
+		});
+	}
 }
