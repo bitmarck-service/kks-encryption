@@ -20,9 +20,16 @@
  */
 package de.tk.opensource.secon;
 
-import global.namespace.fun.io.api.Sink;
-import global.namespace.fun.io.api.Source;
-import global.namespace.fun.io.api.Store;
+import static de.tk.opensource.secon.SECON.callable;
+import static de.tk.opensource.secon.SECON.copy;
+import static de.tk.opensource.secon.SECON.directory;
+import static de.tk.opensource.secon.SECON.identity;
+import static de.tk.opensource.secon.SECON.keyStore;
+import static de.tk.opensource.secon.SECON.subscriber;
+import static global.namespace.fun.io.bios.BIOS.memory;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -32,20 +39,14 @@ import java.util.concurrent.Callable;
 
 import org.junit.jupiter.api.Test;
 
-import de.tk.opensource.secon.Directory;
-import de.tk.opensource.secon.SeconException;
-import de.tk.opensource.secon.Identity;
-import de.tk.opensource.secon.Subscriber;
-
-import static de.tk.opensource.secon.SECON.*;
-import static global.namespace.fun.io.bios.BIOS.*;
-
-import static org.junit.jupiter.api.Assertions.*;
+import global.namespace.fun.io.api.Sink;
+import global.namespace.fun.io.api.Source;
+import global.namespace.fun.io.api.Store;
 
 /**
  * @author Wolfgang Schmiesing (P224488, IT.IN.FRW)
  * @author Christian Schlichtherle
- * @author Marcus Fey
+ * @author Marcus Fey 
 */
 public class SeconTest {
 
@@ -129,7 +130,7 @@ public class SeconTest {
 		Identity recipientId = identity(ks, "alice_rsa_256", pw);
 		Directory directory = directory(ks);
 
-		final Subscriber senderSub = SECONEncBadAlgo.subscriber(senderId, directory);
+		final Subscriber senderSub = SECONEncBadAlgo.subscriber(senderId,directory);
 		final Subscriber recipientSub = subscriber(recipientId, directory);
 		final X509Certificate recipientCert = recipientId.certificate();
 		final Store plain = memory(), cipher = memory(), clone = memory();
