@@ -51,12 +51,6 @@ final class KksAlgorithms {
 		new AlgorithmIdentifier(
 			PKCSObjectIdentifiers.id_RSAES_OAEP,
 			new RSAESOAEPparams(OAEP_HASH_ALGORITHM, OAEP_MASK_GEN_FUNCTION, OAEP_P_SOURCE)
-		);
-	
-	static final AlgorithmIdentifier ENCRYPTION_ALGORITHM_DES_EDE3_CBC_OAEP =
-		new AlgorithmIdentifier(
-			PKCSObjectIdentifiers.des_EDE3_CBC,
-			new RSAESOAEPparams(OAEP_HASH_ALGORITHM, OAEP_MASK_GEN_FUNCTION, OAEP_P_SOURCE)
 		);		
 // des_EDE3_CBC
 }
