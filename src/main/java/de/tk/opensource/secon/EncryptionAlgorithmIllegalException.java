@@ -26,7 +26,7 @@ import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
  * Zeigt an, dass der verwendete Verschlüsselungsalgoritmus nicht der in Anlage 16 als Standard definierte ist. 
  * Eine Instanziierung dieser Klasse außerhalb dieses Pakets ist nicht möglich.
  *
- * @author  Christian Schlichtherle
+ * @author  Marcus Fey
  */
 public class EncryptionAlgorithmIllegalException extends SeconException {
 
@@ -36,8 +36,8 @@ public class EncryptionAlgorithmIllegalException extends SeconException {
 		super("Illegal encryption algorithm: " + algorithmIdentifier.getAlgorithm());
 	}
 
-	public EncryptionAlgorithmIllegalException(String string) {
-		super(string);
+	public EncryptionAlgorithmIllegalException(String expected, String actual) {
+		super("Illegal encryption algorithm, expected: " + expected + ", actual: " + actual);
 	}
 	
 }

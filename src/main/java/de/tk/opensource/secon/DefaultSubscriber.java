@@ -234,13 +234,11 @@ final class DefaultSubscriber implements Subscriber {
 
     private InputStream decrypt(final InputStream in) throws Exception {
         CMSEnvelopedDataParser cmsEDP = new CMSEnvelopedDataParser(new BufferedInputStream(in));
-        
-        // Darft verification of encryption algorithm. Does not work unfortunately...
-        // 2.16.840.1.101.3.4.1.42 vs 1.2.840.113549.1.1.7
-        if(!cmsEDP.getContentEncryptionAlgorithm().equals(KksAlgorithms.ENCRYPTION_ALGORITHM_RSAES_OAEP)) {
-        	throw new EncryptionAlgorithmIllegalException(cmsEDP.getContentEncryptionAlgorithm().getAlgorithm() + " vs " //
-        			+ KksAlgorithms.ENCRYPTION_ALGORITHM_RSAES_OAEP.getAlgorithm());
+        if(!cmsEDP.getEncryptionAlgOID().equals(CMSAlgorithm.AES256_CBC.getId())) {
+        	throw new EncryptionAlgorithmIllegalException(CMSAlgorithm.AES256_CBC.getId(), cmsEDP.getEncryptionAlgOID());
         }
+        
+        System.out.println("decrypt: getEncryptionAlgOID: " + cmsEDP.getEncryptionAlgOID());
         
 		for (final RecipientInformation info : cmsEDP
                 .getRecipientInfos()) {

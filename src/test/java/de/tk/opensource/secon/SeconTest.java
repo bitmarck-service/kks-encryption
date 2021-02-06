@@ -20,9 +20,16 @@
  */
 package de.tk.opensource.secon;
 
-import global.namespace.fun.io.api.Sink;
-import global.namespace.fun.io.api.Source;
-import global.namespace.fun.io.api.Store;
+import static de.tk.opensource.secon.SECON.callable;
+import static de.tk.opensource.secon.SECON.copy;
+import static de.tk.opensource.secon.SECON.directory;
+import static de.tk.opensource.secon.SECON.identity;
+import static de.tk.opensource.secon.SECON.keyStore;
+import static de.tk.opensource.secon.SECON.subscriber;
+import static global.namespace.fun.io.bios.BIOS.memory;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -30,33 +37,26 @@ import java.security.KeyStore;
 import java.security.cert.X509Certificate;
 import java.util.concurrent.Callable;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import de.tk.opensource.secon.Directory;
-import de.tk.opensource.secon.SeconException;
-import de.tk.opensource.secon.Identity;
-import de.tk.opensource.secon.Subscriber;
-
-import static de.tk.opensource.secon.SECON.*;
-import static global.namespace.fun.io.bios.BIOS.*;
-
-import static org.junit.jupiter.api.Assertions.*;
+import global.namespace.fun.io.api.Sink;
+import global.namespace.fun.io.api.Source;
+import global.namespace.fun.io.api.Store;
 
 /**
- * @author  Wolfgang Schmiesing (P224488, IT.IN.FRW)
- * @author  Christian Schlichtherle
+ * @author Wolfgang Schmiesing (P224488, IT.IN.FRW)
+ * @author Christian Schlichtherle
  */
 public class SeconTest {
 
 	@Test
 	void aliceToBobUsingRSA256() throws Exception {
-		System.out.println("aliceToBobUsingRSA256");
 		assertCommunicationRoundtrip("alice_rsa_256", "bob_rsa_256");
 	}
 
 	@Test
 	void bobToAliceUsingRSA256() throws Exception {
-		System.out.println("bobToAliceUsingRSA256");
 		assertCommunicationRoundtrip("bob_rsa_256", "alice_rsa_256");
 	}
 
@@ -80,18 +80,34 @@ public class SeconTest {
 		assertCommunicationRoundtrip("bob_pss_384", "alice_pss_384");
 	}
 
+	@Test
+	void bobToAliceUsingRSASSA_PSS_384_BadEncAlgo() throws Exception {
+		final Callable<char[]> pw = "secret"::toCharArray;
+		final KeyStore ks = keyStore(() -> SeconTest.class.getResourceAsStream("keystore.p12"), pw);
+		Identity senderId = identity(ks, "bob_rsa_256", pw);
+		Identity recipientId = identity(ks, "alice_rsa_256", pw);
+		Directory directory = directory(ks);
+
+		final Subscriber senderSub = SECONEncBadAlgo.subscriber(senderId, directory);
+		final Subscriber recipientSub = subscriber(recipientId, directory);
+		final X509Certificate recipientCert = recipientId.certificate();
+		final Store plain = memory(), cipher = memory(), clone = memory();
+		plain.content("Hello world!".getBytes());
+		copy(input(plain), senderSub.signAndEncryptTo(output(cipher), recipientCert));
+		
+		Assertions.assertThrows(EncryptionAlgorithmIllegalException.class, () -> {
+			copy(recipientSub.decryptAndVerifyFrom(input(cipher)), output(clone));
+		});
+	}
+
 	private static void assertCommunicationRoundtrip(final String sender, final String recipient) throws Exception {
 		final Callable<char[]> pw = "secret"::toCharArray;
 		final KeyStore ks = keyStore(() -> SeconTest.class.getResourceAsStream("keystore.p12"), pw);
 		assertCommunicationRoundtrip(identity(ks, sender, pw), identity(ks, recipient, pw), directory(ks));
 	}
 
-	private static void assertCommunicationRoundtrip(
-		final Identity  senderId,
-		final Identity  recipientId,
-		final Directory directory
-	) throws Exception
-	{
+	private static void assertCommunicationRoundtrip(final Identity senderId, final Identity recipientId,
+			final Directory directory) throws Exception {
 		final Subscriber senderSub = subscriber(senderId, directory);
 		final Subscriber recipientSub = subscriber(recipientId, directory);
 		final X509Certificate recipientCert = recipientId.certificate();
@@ -99,16 +115,14 @@ public class SeconTest {
 		plain.content("Hello world!".getBytes());
 		copy(input(plain), senderSub.signAndEncryptTo(output(cipher), recipientCert));
 
-        // Simulate certificate verification failure:
-        {
-            final SeconException e = new SeconException();
-            assertSame(e, assertThrows(SeconException.class, () -> copy(
-                    recipientSub.decryptAndVerifyFrom(input(cipher), cert -> {
-                        throw e;
-                    }),
-                    output(clone)
-            )));
-        }
+		// Simulate certificate verification failure:
+		{
+			final SeconException e = new SeconException();
+			assertSame(e, assertThrows(SeconException.class,
+					() -> copy(recipientSub.decryptAndVerifyFrom(input(cipher), cert -> {
+						throw e;
+					}), output(clone))));
+		}
 
 		copy(recipientSub.decryptAndVerifyFrom(input(cipher)), output(clone));
 		assertArrayEquals(plain.content(), clone.content());
@@ -122,4 +136,3 @@ public class SeconTest {
 		return callable(sink.output());
 	}
 }
-

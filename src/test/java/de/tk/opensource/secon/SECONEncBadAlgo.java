@@ -20,7 +20,7 @@
  */
 package de.tk.opensource.secon;
 
-import static java.util.Objects.*;
+import static java.util.Objects.requireNonNull;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -109,14 +109,14 @@ import global.namespace.fun.io.bios.BIOS;
  * @see <a href="https://www.gkv-datenaustausch.de/media/dokumente/standards_und_normen/technische_spezifikationen/Anlage_16_-_Security-Schnittstelle.pdf">Anlage 16 - Security Schnittstelle (SECON) (PDF, 1.2 MB)</a>
  * @see <a href="https://www.gkv-datenaustausch.de/media/dokumente/standards_und_normen/technische_spezifikationen/Best_Practice_Security.pdf">Best Practice zur Security-Schnittstelle (PDF, 499 KB)</a>
  */
-public final class SECONBadAlgo {
+public final class SECONEncBadAlgo {
 
     static {
         Security.addProvider(new BouncyCastleProvider());
         Security.setProperty("crypto.policy", "unlimited");
     }
 
-    private SECONBadAlgo() {
+    private SECONEncBadAlgo() {
     }
 
     /**
@@ -233,7 +233,7 @@ public final class SECONBadAlgo {
             final Directory other = others[i];
             directories[++i] = requireNonNull(other);
         }
-        return new DefaultSubscriberBadAlgo(requireNonNull(identity), directories);
+        return new DefaultSubscriberEncBadAlgo(requireNonNull(identity), directories);
     }
 
     /**

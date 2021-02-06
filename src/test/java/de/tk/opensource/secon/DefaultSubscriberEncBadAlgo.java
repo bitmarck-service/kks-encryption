@@ -20,23 +20,16 @@
  */
 package de.tk.opensource.secon;
 
-import global.namespace.fun.io.api.Socket;
-import global.namespace.fun.io.api.function.XFunction;
-import org.bouncycastle.asn1.ASN1ObjectIdentifier;
-import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
-import org.bouncycastle.asn1.x500.X500Name;
-import org.bouncycastle.cms.*;
-import org.bouncycastle.cms.jcajce.JcaSignerInfoGeneratorBuilder;
-import org.bouncycastle.cms.jcajce.JcaSimpleSignerInfoVerifierBuilder;
-import org.bouncycastle.cms.jcajce.JceCMSContentEncryptorBuilder;
-import org.bouncycastle.cms.jcajce.JceKeyTransEnvelopedRecipient;
-import org.bouncycastle.operator.ContentSigner;
-import org.bouncycastle.operator.OutputEncryptor;
-import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
-import org.bouncycastle.operator.jcajce.JcaDigestCalculatorProviderBuilder;
+import static de.tk.opensource.secon.SECON.callable;
+import static de.tk.opensource.secon.SECON.socket;
+import static java.util.Objects.requireNonNull;
+import static org.bouncycastle.jce.provider.BouncyCastleProvider.PROVIDER_NAME;
 
-import javax.security.auth.x500.X500Principal;
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.FilterInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.security.AlgorithmParameters;
 import java.security.PrivateKey;
 import java.security.cert.X509CertSelector;
@@ -46,16 +39,40 @@ import java.util.Arrays;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 
-import static de.tk.opensource.secon.SECON.callable;
-import static de.tk.opensource.secon.SECON.socket;
-import static java.util.Objects.requireNonNull;
-import static org.bouncycastle.jce.provider.BouncyCastleProvider.PROVIDER_NAME;
+import javax.security.auth.x500.X500Principal;
+
+import org.bouncycastle.asn1.ASN1ObjectIdentifier;
+import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
+import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.cms.CMSAlgorithm;
+import org.bouncycastle.cms.CMSEnvelopedDataParser;
+import org.bouncycastle.cms.CMSEnvelopedDataStreamGenerator;
+import org.bouncycastle.cms.CMSSignedDataParser;
+import org.bouncycastle.cms.CMSSignedDataStreamGenerator;
+import org.bouncycastle.cms.CMSTypedStream;
+import org.bouncycastle.cms.KeyTransRecipientId;
+import org.bouncycastle.cms.RecipientId;
+import org.bouncycastle.cms.RecipientInformation;
+import org.bouncycastle.cms.SignerId;
+import org.bouncycastle.cms.SignerInformation;
+import org.bouncycastle.cms.SignerInformationVerifier;
+import org.bouncycastle.cms.jcajce.JcaSignerInfoGeneratorBuilder;
+import org.bouncycastle.cms.jcajce.JcaSimpleSignerInfoVerifierBuilder;
+import org.bouncycastle.cms.jcajce.JceCMSContentEncryptorBuilder;
+import org.bouncycastle.cms.jcajce.JceKeyTransEnvelopedRecipient;
+import org.bouncycastle.operator.ContentSigner;
+import org.bouncycastle.operator.OutputEncryptor;
+import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
+import org.bouncycastle.operator.jcajce.JcaDigestCalculatorProviderBuilder;
+
+import global.namespace.fun.io.api.Socket;
+import global.namespace.fun.io.api.function.XFunction;
 
 /**
  * @author  Wolfgang Schmiesing (P224488, IT.IN.FRW)
  * @author  Christian Schlichtherle
  */
-final class DefaultSubscriberBadAlgo implements Subscriber {
+final class DefaultSubscriberEncBadAlgo implements Subscriber {
 
 	private volatile PrivateKey privateKey;
 	private volatile X509Certificate certificate;
@@ -63,7 +80,7 @@ final class DefaultSubscriberBadAlgo implements Subscriber {
 	private final Identity identity;
 	private final Directory[] directories;
 
-	DefaultSubscriberBadAlgo(final Identity identity, final Directory[] directories) {
+	DefaultSubscriberEncBadAlgo(final Identity identity, final Directory[] directories) {
 		this.identity = identity;
 		this.directories = directories;
 	}
@@ -203,9 +220,9 @@ final class DefaultSubscriberBadAlgo implements Subscriber {
 		throws Exception
 	{
 		final CMSEnvelopedDataStreamGenerator gen = new CMSEnvelopedDataStreamGenerator();
-		Arrays.stream(recipients).map(RecipientInfoGeneratorFactoryBadAlgo::create).forEach(gen::addRecipientInfoGenerator);
+		Arrays.stream(recipients).map(RecipientInfoGeneratorFactory::create).forEach(gen::addRecipientInfoGenerator);
 		final OutputEncryptor encryptor =
-			new JceCMSContentEncryptorBuilder(CMSAlgorithm.AES256_CBC)
+			new JceCMSContentEncryptorBuilder(CMSAlgorithm.DES_CBC)
 				.setProvider(PROVIDER_NAME)
 				.build();
 		return gen.open(out, encryptor);
