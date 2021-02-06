@@ -20,16 +20,9 @@
  */
 package de.tk.opensource.secon;
 
-import static de.tk.opensource.secon.SECON.callable;
-import static de.tk.opensource.secon.SECON.copy;
-import static de.tk.opensource.secon.SECON.directory;
-import static de.tk.opensource.secon.SECON.identity;
-import static de.tk.opensource.secon.SECON.keyStore;
-import static de.tk.opensource.secon.SECON.subscriber;
-import static global.namespace.fun.io.bios.BIOS.memory;
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import global.namespace.fun.io.api.Sink;
+import global.namespace.fun.io.api.Source;
+import global.namespace.fun.io.api.Store;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -37,12 +30,17 @@ import java.security.KeyStore;
 import java.security.cert.X509Certificate;
 import java.util.concurrent.Callable;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import global.namespace.fun.io.api.Sink;
-import global.namespace.fun.io.api.Source;
-import global.namespace.fun.io.api.Store;
+import de.tk.opensource.secon.Directory;
+import de.tk.opensource.secon.SeconException;
+import de.tk.opensource.secon.Identity;
+import de.tk.opensource.secon.Subscriber;
+
+import static de.tk.opensource.secon.SECON.*;
+import static global.namespace.fun.io.bios.BIOS.*;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * @author Wolfgang Schmiesing (P224488, IT.IN.FRW)
@@ -81,7 +79,7 @@ public class SeconTest {
 	}
 
 	@Test
-	void bobToAliceUsingRSASSA_PSS_384_BadEncAlgo() throws Exception {
+	void bobToAliceUsingRSASSA_RSS_256_BadEncAlgo() throws Exception {
 		final Callable<char[]> pw = "secret"::toCharArray;
 		final KeyStore ks = keyStore(() -> SeconTest.class.getResourceAsStream("keystore.p12"), pw);
 		Identity senderId = identity(ks, "bob_rsa_256", pw);
@@ -95,7 +93,7 @@ public class SeconTest {
 		plain.content("Hello world!".getBytes());
 		copy(input(plain), senderSub.signAndEncryptTo(output(cipher), recipientCert));
 		
-		Assertions.assertThrows(EncryptionAlgorithmIllegalException.class, () -> {
+		assertThrows(EncryptionAlgorithmIllegalException.class, () -> {
 			copy(recipientSub.decryptAndVerifyFrom(input(cipher)), output(clone));
 		});
 	}
