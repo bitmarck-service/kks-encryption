@@ -104,33 +104,39 @@ public class SeconTest {
 		assertCommunicationRoundtrip(identity(ks, sender, pw), identity(ks, recipient, pw), directory(ks));
 	}
 
-	private static void assertCommunicationRoundtrip(final Identity senderId, final Identity recipientId,
-			final Directory directory) throws Exception {
-		final Subscriber senderSub = subscriber(senderId, directory);
-		final Subscriber recipientSub = subscriber(recipientId, directory);
-		final X509Certificate recipientCert = recipientId.certificate();
-		final Store plain = memory(), cipher = memory(), clone = memory();
-		plain.content("Hello world!".getBytes());
-		copy(input(plain), senderSub.signAndEncryptTo(output(cipher), recipientCert));
-
-		// Simulate certificate verification failure:
+	private static void assertCommunicationRoundtrip(
+			final Identity  senderId,
+			final Identity  recipientId,
+			final Directory directory
+		) throws Exception
 		{
-			final SeconException e = new SeconException();
-			assertSame(e, assertThrows(SeconException.class,
-					() -> copy(recipientSub.decryptAndVerifyFrom(input(cipher), cert -> {
-						throw e;
-					}), output(clone))));
+			final Subscriber senderSub = subscriber(senderId, directory);
+			final Subscriber recipientSub = subscriber(recipientId, directory);
+			final X509Certificate recipientCert = recipientId.certificate();
+			final Store plain = memory(), cipher = memory(), clone = memory();
+			plain.content("Hello world!".getBytes());
+			copy(input(plain), senderSub.signAndEncryptTo(output(cipher), recipientCert));
+
+	        // Simulate certificate verification failure:
+	        {
+	            final SeconException e = new SeconException();
+	            assertSame(e, assertThrows(SeconException.class, () -> copy(
+	                    recipientSub.decryptAndVerifyFrom(input(cipher), cert -> {
+	                        throw e;
+	                    }),
+	                    output(clone)
+	            )));
+	        }
+
+			copy(recipientSub.decryptAndVerifyFrom(input(cipher)), output(clone));
+			assertArrayEquals(plain.content(), clone.content());
 		}
 
-		copy(recipientSub.decryptAndVerifyFrom(input(cipher)), output(clone));
-		assertArrayEquals(plain.content(), clone.content());
-	}
+		private static Callable<InputStream> input(Source source) {
+			return callable(source.input());
+		}
 
-	private static Callable<InputStream> input(Source source) {
-		return callable(source.input());
-	}
-
-	private static Callable<OutputStream> output(Sink sink) {
-		return callable(sink.output());
-	}
+		private static Callable<OutputStream> output(Sink sink) {
+			return callable(sink.output());
+		}
 }
